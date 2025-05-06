@@ -62,7 +62,7 @@ class MultiView_UNetLike_DenseDimensionNet(nn.Module):
         # Decoder
         ##############
         self.fuse_decoder = UNetLikeDecoder(
-            self.decoder_channel_list, decoder_block_list,
+            self.decoder_channel_list, decoder_block_list, output_channels, decoder_out_activation,
             decoder_norm_layer=decoder_norm_layer, upsample_mode=upsample_mode
         )
         
@@ -98,7 +98,7 @@ class MultiView_UNetLike_DenseDimensionNet(nn.Module):
         view1_next_input = self.view1Model(x[0])  # full forward to 3D
         view2_next_input = self.view2Model(x[1])
         view_next_input = None
-        
+        # print(f"[Decoder Input] shape: {view1_next_input.shape}")
         for i in range(self.n_sampling-1 , -2 , -1):
             if i == -1:
                 view1_compress_layer = self.view1Model.decoder.final_compress
@@ -124,7 +124,9 @@ class MultiView_UNetLike_DenseDimensionNet(nn.Module):
                 view_avg = self.transposed_layer(view1_next_input, view2_next_input) / 2   
 
                 view_next_input = getattr(self, f'decoder_layer{i}')(torch.cat((view_avg, view_next_input), dim=1))
-
+            
+            print(f"[view1_next_input Decoder Level {4-i}] output shape: {view1_next_input.shape}")
+            print(f"[view_next_input Decoder Level {4-i}] output shape: {view_next_input.shape}")
             view1_next_input = view1_docder_layer(view1_next_input)  
             view2_next_input = view2_docder_layer(view2_next_input)  
             

@@ -11,7 +11,7 @@ def build_multi_view_ctgan_model(opt):
         output_channels=opt.output_nc_G,
         input_shape=128,
         decoder_block_list=[1, 1, 1, 1, 1, 0],
-        decoder_out_activation=nn.Tanh,
+        decoder_out_activation=nn.ReLU,
         encoder_norm_layer=nn.BatchNorm2d,
         decoder_norm_layer=nn.BatchNorm3d,
         upsample_mode='transposed'  # 你也可以從 opt 控制

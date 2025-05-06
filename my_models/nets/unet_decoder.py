@@ -3,7 +3,7 @@ import torch.nn as nn
 import functools
 
 class UNetLikeDecoder(nn.Module):
-    def __init__(self, decoder_channel_list, decoder_block_list, decoder_norm_layer=nn.BatchNorm3d, upsample_mode='nearest'):
+    def __init__(self, decoder_channel_list, decoder_block_list, output_channels, decoder_out_activation=nn.Tanh, decoder_norm_layer=nn.BatchNorm3d, upsample_mode='nearest'):
         super(UNetLikeDecoder, self).__init__()
 
         if isinstance(decoder_norm_layer, functools.partial):
@@ -53,6 +53,12 @@ class UNetLikeDecoder(nn.Module):
             ]
         self.final_decoder = nn.Sequential(*decoder_layers)
         self.final_layer = nn.Sequential(self.final_compress, *decoder_layers)
+        
+        self.output_layer = nn.Sequential(
+            nn.Conv3d(decoder_channel_list[0], output_channels, kernel_size=7, padding=3),
+            decoder_out_activation()
+        )
+
 
     def forward(self, base_volume, linker_features):
         x = base_volume

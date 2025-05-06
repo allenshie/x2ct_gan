@@ -11,6 +11,7 @@ class UNetLike_DenseDimensionNet(nn.Module):
                  encoder_norm_layer=nn.BatchNorm2d, decoder_norm_layer=nn.BatchNorm3d,
                  upsample_mode='nearest'):
         super(UNetLike_DenseDimensionNet, self).__init__()
+        
         self.decoder_begin_size = input_shape // 2 ** len(encoder_block_list)
         self.decoder_channel_list = decoder_channel_list
         self.n_sampling = len(encoder_block_list)
@@ -25,7 +26,7 @@ class UNetLike_DenseDimensionNet(nn.Module):
         )
 
         self.decoder = UNetLikeDecoder(
-            decoder_channel_list, decoder_block_list,
+            decoder_channel_list, decoder_block_list, output_channels, decoder_out_activation,
             decoder_norm_layer=decoder_norm_layer, upsample_mode=upsample_mode
         )
 
@@ -35,16 +36,21 @@ class UNetLike_DenseDimensionNet(nn.Module):
         )
 
     def forward(self, x):
+        # print(f"[Encoder Input] shape: {x.shape}")
         encoder_feature = self.encoder.initial(x)
+        # print(f"[Encoder Initial] shape: {encoder_feature.shape}")
         view_next_input = encoder_feature
         for i in range(self.encoder.n_downsampling):
             setattr(self, f'feature_linker{i}', self.linker.linker_layers[i](view_next_input))
+            feature_linker = getattr(self, f'feature_linker{i}')
+            print(f"[Linker Level {i}] output shape: {feature_linker.shape}")
             view_next_input = self.encoder.encode_layers[i](view_next_input)
+            # print(f"[Encoder Level {i}] output: {view_next_input.shape}")
         
         view_next_input = self.linker.base_link(view_next_input.reshape(x.size(0), -1))
         
         B = view_next_input.size(0)
         C = self.decoder_channel_list[-1]
         S = self.decoder_begin_size
-
+        # print(f"[Encoder Final Output] shape: {view_next_input.reshape(B, C, S, S, S).shape}")
         return view_next_input.reshape(B, C, S, S, S)
