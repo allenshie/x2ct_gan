@@ -172,7 +172,15 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# model 
+save_models/
+
 # data
 data/*
 !data/train.txt
 !data/test.txt
+
+# output
+multiview
+
+

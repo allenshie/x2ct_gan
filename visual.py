@@ -139,71 +139,69 @@ if __name__ == '__main__':
 
   avg_dict = dict()
   for epoch_i, data in tqdm.tqdm(enumerate(dataloader)):
-      ct, xray1, file_path = data
-      gan_model.set_input(data)
-      gan_model.test()
 
-      visuals = gan_model.get_current_visuals()
-      img_path = gan_model.get_image_paths()
+    gan_model.set_input(data)
+    gan_model.test()
 
-      if epoch_i <= opt.how_many:
-        #
-        # Image HTML
-        #
-        save_images(webpage, visuals, img_path, gan_model.get_normalization_list(), max_image=50)
-        #
-        # CT Source
-        #
-        # generate_CT = visuals['G_fake'].data.clone().cpu().numpy()
-        # real_CT = visuals['G_real'].data.clone().cpu().numpy()
-        
-        # # To NDHW
-        # if 'std' in opt.dataset_class or 'baseline' in opt.dataset_class:
-        #   generate_CT_transpose = generate_CT
-        #   real_CT_transpose = real_CT
-        # else:
-        #   generate_CT_transpose = np.transpose(generate_CT, (0, 2, 1, 3))
-        #   real_CT_transpose = np.transpose(real_CT, (0, 2, 1, 3))
-        # # Inveser Deepth
-        # generate_CT_transpose = generate_CT_transpose[:, ::-1, :, :]
-        # real_CT_transpose = real_CT_transpose[:, ::-1, :, :]
-        # # To [0, 1]
-        # generate_CT_transpose = tensor_back_to_unnormalization(generate_CT_transpose, opt.CT_MEAN_STD[0],
-        #                                                       opt.CT_MEAN_STD[1])
-        # real_CT_transpose = tensor_back_to_unnormalization(real_CT_transpose, opt.CT_MEAN_STD[0], opt.CT_MEAN_STD[1])
-        # # Clip generate_CT
-        # generate_CT_transpose = np.clip(generate_CT_transpose, 0, 1)
+    visuals = gan_model.get_current_visuals()
+    img_path = gan_model.get_image_paths()
 
-    #   # #
-    #   # # Evaluate Part
-    #   # #
-    #   # mae = MAE(real_CT_transpose, generate_CT_transpose, size_average=False)
-    #   # mse = MSE(real_CT_transpose, generate_CT_transpose, size_average=False)
-    #   # cosinesimilarity = Cosine_Similarity(real_CT_transpose, generate_CT_transpose, size_average=False)
-    #   # psnr = Peak_Signal_to_Noise_Rate(real_CT_transpose, generate_CT_transpose, size_average=False, PIXEL_MAX=1.0)
-    #   # ssim = Structural_Similarity(real_CT_transpose, generate_CT_transpose, size_average=False, PIXEL_MAX=1.0)
-    #   #
-    #   # metrics_list = [('MAE', mae), ('MSE', mse), ('CosineSimilarity', cosinesimilarity), ('PSNR-1', psnr[0]),
-    #   #                 ('PSNR-2', psnr[1]), ('PSNR-3', psnr[2]), ('PSNR-avg', psnr[3]),
-    #   #                 ('SSIM-1', ssim[0]), ('SSIM-2', ssim[1]), ('SSIM-3', ssim[2]), ('SSIM-avg', ssim[3])]
+    if epoch_i <= opt.how_many:
+      #
+      # Image HTML
+      #
+      save_images(webpage, visuals, img_path, gan_model.get_normalization_list(), max_image=50)
+      #
+      # CT Source
+      #
+      generate_CT = visuals['G_fake'].data.clone().cpu().numpy()
+      real_CT = visuals['G_real'].data.clone().cpu().numpy()
+      # To NDHW
+      if 'std' in opt.dataset_class or 'baseline' in opt.dataset_class:
+        generate_CT_transpose = generate_CT
+        real_CT_transpose = real_CT
+      else:
+        generate_CT_transpose = np.transpose(generate_CT, (0, 2, 1, 3))
+        real_CT_transpose = np.transpose(real_CT, (0, 2, 1, 3))
+      # Inveser Deepth
+      generate_CT_transpose = generate_CT_transpose[:, ::-1, :, :]
+      real_CT_transpose = real_CT_transpose[:, ::-1, :, :]
+      # To [0, 1]
+      generate_CT_transpose = tensor_back_to_unnormalization(generate_CT_transpose, opt.CT_MEAN_STD[0],
+                                                             opt.CT_MEAN_STD[1])
+      real_CT_transpose = tensor_back_to_unnormalization(real_CT_transpose, opt.CT_MEAN_STD[0], opt.CT_MEAN_STD[1])
+      # Clip generate_CT
+      generate_CT_transpose = np.clip(generate_CT_transpose, 0, 1)
 
-    #   # To HU coordinate
-    #   generate_CT_transpose = tensor_back_to_unMinMax(generate_CT_transpose, opt.CT_MIN_MAX[0], opt.CT_MIN_MAX[1]).astype(np.int32) - 1024
-    #   real_CT_transpose = tensor_back_to_unMinMax(real_CT_transpose, opt.CT_MIN_MAX[0], opt.CT_MIN_MAX[1]).astype(np.int32) - 1024
-    #   # Save
-    #   name1 = os.path.splitext(os.path.basename(img_path[0][0]))[0]
-    #   name2 = os.path.split(os.path.dirname(img_path[0][0]))[-1]
-    #   name = name2 + '_' + name1
-    #   image_root = os.path.join(web_dir, 'CT', name)
-    #   if not os.path.exists(image_root):
-    #     os.makedirs(image_root)
-    #   save_path = os.path.join(image_root, 'fake_ct.mha')
-    #   ctVisual.save(generate_CT_transpose.squeeze(0), spacing=(1.0, 1.0, 1.0), origin=(0,0,0), path=save_path)
-    #   save_path = os.path.join(image_root, 'real_ct.mha')
-    #   ctVisual.save(real_CT_transpose.squeeze(0), spacing=(1.0, 1.0, 1.0), origin=(0, 0, 0), path=save_path)
+      # #
+      # # Evaluate Part
+      # #
+      # mae = MAE(real_CT_transpose, generate_CT_transpose, size_average=False)
+      # mse = MSE(real_CT_transpose, generate_CT_transpose, size_average=False)
+      # cosinesimilarity = Cosine_Similarity(real_CT_transpose, generate_CT_transpose, size_average=False)
+      # psnr = Peak_Signal_to_Noise_Rate(real_CT_transpose, generate_CT_transpose, size_average=False, PIXEL_MAX=1.0)
+      # ssim = Structural_Similarity(real_CT_transpose, generate_CT_transpose, size_average=False, PIXEL_MAX=1.0)
+      #
+      # metrics_list = [('MAE', mae), ('MSE', mse), ('CosineSimilarity', cosinesimilarity), ('PSNR-1', psnr[0]),
+      #                 ('PSNR-2', psnr[1]), ('PSNR-3', psnr[2]), ('PSNR-avg', psnr[3]),
+      #                 ('SSIM-1', ssim[0]), ('SSIM-2', ssim[1]), ('SSIM-3', ssim[2]), ('SSIM-avg', ssim[3])]
 
-    # else:
-    #   break
-    # del visuals, img_path
-  # webpage.save()
+      # To HU coordinate
+      generate_CT_transpose = tensor_back_to_unMinMax(generate_CT_transpose, opt.CT_MIN_MAX[0], opt.CT_MIN_MAX[1]).astype(np.int32) - 1024
+      real_CT_transpose = tensor_back_to_unMinMax(real_CT_transpose, opt.CT_MIN_MAX[0], opt.CT_MIN_MAX[1]).astype(np.int32) - 1024
+      # Save
+      name1 = os.path.splitext(os.path.basename(img_path[0][0]))[0]
+      name2 = os.path.split(os.path.dirname(img_path[0][0]))[-1]
+      name = name2 + '_' + name1
+      image_root = os.path.join(web_dir, 'CT', name)
+      if not os.path.exists(image_root):
+        os.makedirs(image_root)
+      save_path = os.path.join(image_root, 'fake_ct.mha')
+      ctVisual.save(generate_CT_transpose.squeeze(0), spacing=(1.0, 1.0, 1.0), origin=(0,0,0), path=save_path)
+      save_path = os.path.join(image_root, 'real_ct.mha')
+      ctVisual.save(real_CT_transpose.squeeze(0), spacing=(1.0, 1.0, 1.0), origin=(0, 0, 0), path=save_path)
 
+    else:
+      break
+    del visuals, img_path
+  webpage.save()
